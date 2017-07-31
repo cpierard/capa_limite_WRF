@@ -1,12 +1,9 @@
-import scipy.interpolate as interpolate
-import numpy as np
-
 def interpolate_velocity(XLONG, XLAT, XLONG_U, XLAT_U, U, uu = True, Kind = 'linear'):
 
     '''
     interpolate_velocity(XLONG, XLAT, XLONG_U, XLAT_U, U, uu = True, Kind = 'linear')
 
-        `XLON`, `XLAT`, `XLONG_U`, `XLAT_U`...  van con su dimensión temporal.
+        `XLON`, `XLAT`, `XLONG_U`, `XLAT_U, U` van con su dimensión temporal.
         `U` va con su dimensión temporal.
         `uu` define si se trata de velocidad zonal o meridional, es decir si se está interpolando 'u', uu = True.
         `Kind`, tipo de interpolación. Por default es linear.
@@ -55,7 +52,7 @@ def compute_height(PH, PHB):
     for t in range(0, PH.shape[0]):
         for h in range(0, PH.shape[1]-1):
 
-            Z[t, h, :, :] = ((PH[t, h, :, :] + PHB[t, h, :, :]) + (PH[t, h+1, :, :] + PHB[t, h+1, :, :]))/g
+            Z[t, h, :, :] = ((PH[t, h, :, :] + PHB[t, h, :, :]) + (PH[t, h+1, :, :] + PHB[t, h+1, :, :]))/(g*2)
 
     return Z
 
@@ -95,3 +92,28 @@ def compute_Richardson_2(θ, Z, u, v):
         Ri[i] = (g*(θ[i] - θ[0])*(Z[i] - Z[0]))/(θ[i] * (u[i]**2 + v[i]**2))
 
     return Ri
+
+def near_coord(xlong, xlat, loclong, loclat):
+
+    '''
+        near_coord(xlong, xlat, loclong, loclat)
+        OUT: nx, ny
+
+    '''
+
+    distlog = np.abs(xlong[0,0,:] - loclong)
+    distlat = np.abs(xlat[0,:,0] - loclat)
+    nx = 0
+    ny = 0
+
+    for i in range(0, len(xlong[0,0,:])):
+
+        if distlog[i] < distlog[ny]:
+            ny = i
+
+    for j in range(0, len(xlat[0,:,0])):
+
+        if distlat[j] < distlat[nx]:
+            nx = j
+
+    return nx, ny
