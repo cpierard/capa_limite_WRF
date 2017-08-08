@@ -1,3 +1,6 @@
+import scipy.interpolate as interpolate
+import numpy as np
+
 def interpolate_velocity(XLONG, XLAT, XLONG_U, XLAT_U, U, uu = True, Kind = 'linear'):
 
     '''
@@ -60,6 +63,7 @@ def compute_Richardson(T_s, θ, Z, u, v):
 
     '''
         compute_Richardson(T_s, θ, Z, u, v):
+
             Especificar tiempo y localización.
 
     '''
@@ -99,6 +103,8 @@ def near_coord(xlong, xlat, loclong, loclat):
         near_coord(xlong, xlat, loclong, loclat)
         OUT: nx, ny
 
+            Busca los índices más cercanos a una coordenada.
+
     '''
 
     distlog = np.abs(xlong[0,0,:] - loclong)
@@ -117,3 +123,45 @@ def near_coord(xlong, xlat, loclong, loclat):
             nx = j
 
     return nx, ny
+
+'''
+    detecta_PBL(Ri, Z, Ric):
+        OUT: n, z
+
+        Decta el índice en la columna vertical donde el gradiente es igual al valor crítico. n es el índice y z es la atura donde está la capa límite.
+        Ri = perfil vertical del gradeinte de Richardon.
+        Z = alturas. Especificar tiempo y coordenadas.
+        Ric = valor crítico de Richardson. Usualmente es 0.21.
+'''
+
+def detecta_PBL(Ri, Z, Ric):
+
+    n = []
+
+    for i in range(0,len(Ri)-1):
+
+        if Ri[i] < Ric and Ri[i+1] > Ric:
+            n.append(i)
+            break
+
+    #print('Capa límite: ', Z[i], '. Ínidce: ', n)
+    return n, Z[n]
+
+def detecta_PBL_indices(Ri, Z, Ric):
+
+    n = []
+
+    for i in range(0,len(Ri)-1):
+
+        if Ri[i] < Ric and Ri[i+1] > Ric:
+            n.append(i)
+
+        elif Ri[i] > Ric and Ri[i+1] < Ric:
+            n.append(i)
+
+        elif Ri[i] == 0.21:
+            n.append(i)
+            print('índice ', i, ' == ', Ric)
+
+    #print('Capa límite: ', Z[i], '. Ínidce: ', n)
+    return n #, Z[n]
