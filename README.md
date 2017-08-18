@@ -4,7 +4,9 @@
 
 - [x] Interpolación velocidades.
 - [x] Cálculo de altura.
-- [ ] Algoritmo para calcular número de Richardson.
+- [x] Algoritmo para calcular número de Richardson.
+- [x] Gráfica 1:1 (de calibración)
+- [ ] Script para extraer datos de interés.
 - [ ] ...
 
 Los avances se encuentran en el `jupyter notebook` que se llama `Calculo_Richardson.ipynb`.
@@ -13,4 +15,4 @@ Los avances se encuentran en el `jupyter notebook` que se llama `Calculo_Richard
 
 `Pruebas_netCDF4.ipynb` es un cuaderno que está muy desordenado y tiene un montón de pruebas fallidas.
 
-`mkSkewTfromWRF.py` es un radiosondeo virtual que usa el paquete `pymeteo`. 
+`mkSkewTfromWRF.py` es un radiosondeo virtual que usa el paquete `pymeteo`.

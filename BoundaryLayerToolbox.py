@@ -62,9 +62,16 @@ def compute_height(PH, PHB):
 def compute_Richardson(T_s, θ, Z, u, v):
 
     '''
-        compute_Richardson(T_s, θ, Z, u, v):
+    compute_Richardson(T_s, θ, Z, u, v):
+        OUT: Ri
 
-            Especificar tiempo y localización.
+        T_s = Temperatura superficial
+        θ = Temperatura potencial. Tiene que ser un arreglo 1d con una temperatura potencial por cada nivel.
+        Z = Arreglo con las alturas para una ubicación.
+        u = Arreglo de 1d con los vientos u en cada nivel.
+        v = Arreglo de 1d con los vientos v en cada nivel.
+
+        Ri = un arreglo con las mismas dimensiones que Z, con los Richardson calculados para cada altura.
 
     '''
 
@@ -124,30 +131,43 @@ def near_coord(xlong, xlat, loclong, loclat):
 
     return nx, ny
 
-'''
-    detecta_PBL(Ri, Z, Ric):
-        OUT: n, z
-
-        Decta el índice en la columna vertical donde el gradiente es igual al valor crítico. n es el índice y z es la atura donde está la capa límite.
-        Ri = perfil vertical del gradeinte de Richardon.
-        Z = alturas. Especificar tiempo y coordenadas.
-        Ric = valor crítico de Richardson. Usualmente es 0.21.
-'''
-
 def detecta_PBL(Ri, Z, Ric):
 
-    n = []
+    '''
+        detecta_PBL(Ri, Z, Ric):
+            OUT: n, z
+
+            Decta el índice de la primera capa donde el gradiente es igual al valor crítico. n es el índice y z es la atura donde está la capa límite.
+            Ri = perfil vertical de Richardon.
+            Z = alturas para una coordenada
+            Ric = valor crítico de Richardson. Usualmente es 0.21.
+    '''
+
+    n = 0
 
     for i in range(0,len(Ri)-1):
 
         if Ri[i] < Ric and Ri[i+1] > Ric:
-            n.append(i)
+            n = i
+            break
+        elif Ri[i] > Ric and Ri[i+1] < Ric:
+            n = i
             break
 
-    #print('Capa límite: ', Z[i], '. Ínidce: ', n)
+    print('Capa límite: ', Z[i], '. Ínidce: ', n)
     return n, Z[n]
 
 def detecta_PBL_indices(Ri, Z, Ric):
+
+    '''
+        detecta_PBL_indices(Ri, Z, Ric):
+            OUT: n
+
+            Decta el conjunto de índices donde el gradiente es igual al valor crítico. n es un arreglo que contiene todos los índices.
+            Ri = perfil vertical de Richardon.
+            Z = alturas para una coordenada
+            Ric = valor crítico de Richardson. Usualmente es 0.21.
+    '''
 
     n = []
 
