@@ -185,3 +185,64 @@ def detecta_PBL_indices(Ri, Z, Ric):
 
     #print('Capa límite: ', Z[i], '. Ínidce: ', n)
     return n #, Z[n]
+
+class region:
+    def __init__(self):
+        self.lon = None
+        self.lat = None
+        self.max_lon = None
+        self.max_lat = None
+        self.min_lon = None
+        self.min_lat = None
+        self.name = None
+
+def read_region(region, f):
+    n = f.find('.')
+    region.name = f[0:n]
+    R=open(f,'r')
+    lon=[]
+    lat=[]
+    for line in R:
+        if '>' in line:
+            pass
+        else:
+            lon.append(float(line.split()[0]))
+            lat.append(float(line.split()[1]))
+    region.lon=np.array(lon)
+    region.lat=np.array(lat)
+    region.max_lon = max(region.lon)
+    region.max_lat = max(region.lat)
+    region.min_lon = min(region.lon)
+    region.min_lat = min(region.lat)
+
+def in_or_out(region, x, y):
+
+    crossings = 0
+    for i in range(0,len(region.lon)-1):
+        if x < region.lon[i] and x < region.lon[i+1] or x > region.lon[i] and x > region.lon[i+1]:
+            pass
+
+        elif y > region.lat[i] and y > region.lat[i+1]:
+            pass
+
+        elif y < region.lat[i] and y < region.lat[i+1]:
+            if x < region.lon[i] and x > region.lon[i+1] or x > region.lon[i] and x < region.lon[i+1]:
+                crossings += 1
+
+        elif y > region.lat[i] and y < region.lat[i+1]:
+            if x > region.lon[i] and x < region.lon[i+1]:
+                y_c = region.lat[i] + (region.lat[i+1] - region.lat[i])*(x - region.lon[i])/(region.lon[i+1] - region.lon[i])
+                if y_c > y:
+                    crossings += 1
+
+        elif y < region.lat[i] and y > region.lat[i+1]:
+            if x < region.lon[i] or x > region.lon[i+1]:
+                y_c = region.lat[i+1] + (region.lat[i] - region.lat[i+1])*(x - region.lon[i+1])/(region.lon[i] - region.lon[i+1])
+                if y_c > y:
+                    crossings += 1
+
+    if crossings % 2 == 0:
+        return False
+
+    elif crossings % 2 != 0:
+        return True

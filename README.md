@@ -7,7 +7,8 @@
 - [x] Algoritmo para calcular número de Richardson.
 - [x] Gráfica 1:1 (de calibración)
 - [ ] Script para extraer datos de interés.
-- [ ] ...
+- [ ] Delegaciones CDMX
+- [ ] Coeficientes de ventilación por delegación
 
 Los avances se encuentran en el `jupyter notebook` que se llama `Calculo_Richardson.ipynb`.
 
