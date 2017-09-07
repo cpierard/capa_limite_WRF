@@ -4,4 +4,5 @@
 *.nc
 *.png
 *.jpg
+*.mat
 __pycache__/

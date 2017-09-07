@@ -187,6 +187,19 @@ def detecta_PBL_indices(Ri, Z, Ric):
     return n #, Z[n]
 
 class region:
+    """
+    Declares a new class specific for geografical polygons. The main purpose is to locate which points in a grid are inside of the polygon.
+    ATRIBUTES:
+        self.lon: Is an array with all the longitudinal coordinates of the polygon.
+        self.lat: Is an array with all the latitude coordinates of the polygon.
+        self.max_lon: gives the max longitud of the polygon.
+        self.max_lat: gives the max longitud of the polygon.
+        self.min_lon: gives the min longitud of the polygon.
+        self.min_lat: gives the min longitud of the polygon.
+        self.name: Is the name of the region, in a string.
+        self.nx: All the x indices
+        self.ny:
+    """
     def __init__(self):
         self.lon = None
         self.lat = None
@@ -195,8 +208,16 @@ class region:
         self.min_lon = None
         self.min_lat = None
         self.name = None
+        self.nx = None
+        self.ny = None
 
 def read_region(region, f):
+    """
+    read_region(region, f):
+        The function reads an .txt file and fills up its attributes, except region.nx and region.ny.
+        'region' is an object class region, previously declared as region(). f is the file location, it must be a string.
+
+    """
     n = f.find('.')
     region.name = f[0:n]
     R=open(f,'r')
@@ -216,7 +237,11 @@ def read_region(region, f):
     region.min_lat = min(region.lat)
 
 def in_or_out(region, x, y):
-
+    """
+    in_or_out(region, x, y):
+        Checks if the point x and y, is inside of the polygon region. The polygon must be an object class region.
+        OUT: boolean.
+    """
     crossings = 0
     for i in range(0,len(region.lon)-1):
         if x < region.lon[i] and x < region.lon[i+1] or x > region.lon[i] and x > region.lon[i+1]:
@@ -246,3 +271,38 @@ def in_or_out(region, x, y):
 
     elif crossings % 2 != 0:
         return True
+
+def points_in_region(region, x_long, x_lat):
+    """
+    points_in_region(region, x_long, x_lat):
+        Looks for the points inside a polygon. 'region' is the polygon it must be an object region.
+        x_long is an array containing all the longitud coordinates of the grid.
+        x_lat is an array containing all the latitud coordinates of the grid.
+            OUT: nothing. It appends the nx and ny indices of the points inside of the polygon to the atribitute region.nx and region.ny .
+    """
+    nx = []
+    ny = []
+    for i in range(0,29):
+        for j in range(0,29):
+            if blt.in_or_out(region, x_long[i,j], x_lat[i,j]) == True:
+                nx.append(i)
+                ny.append(j)
+    #return nx, ny
+    region.nx = nx
+    region.ny = ny
+
+def import_var_mat(file, station):
+    """
+    import_var_mat(file, station):
+        Imports the variables in a .mat file previously read using scipy.io.loadmat() function.
+        The argument station is the name or acronym of the station, it must be a string.
+        It returns a directory containing all the arrays.
+    """
+
+
+    variables = ["PBLH","T","T2","U","V","PH","PHB","HGT","XLAT","XLONG"]#,"XLAT_U","XLONG_U","XLAT_V","XLONG_V"]
+    d = {}
+    for i in variables:
+        d[i] = file["s"][station][0][0][0][0][i]
+
+    return var_dir
