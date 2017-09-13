@@ -2,61 +2,24 @@ import scipy.interpolate as interpolate
 import numpy as np
 import datetime
 
-def interpolate_velocity(XLONG, XLAT, XLONG_U, XLAT_U, U, uu = True, Kind = 'linear'):
-
-    '''
-    interpolate_velocity(XLONG, XLAT, XLONG_U, XLAT_U, U, uu = True, Kind = 'linear')
-
-        `XLON`, `XLAT`, `XLONG_U`, `XLAT_U, U` van con su dimensión temporal.
-        `U` va con su dimensión temporal.
-        `uu` define si se trata de velocidad zonal o meridional, es decir si se está interpolando 'u', uu = True.
-        `Kind`, tipo de interpolación. Por default es linear.
-
-        ej:
-            interpolate_velocity(xlong, xlat, xlong_v, xlat_v, v, uu = False)
-
-    '''
-
-    x_old = XLONG_U[0, 1, :]
-    y_old = XLAT_U[0, :, 1]
-    x_new = XLONG[0, 1, :]
-    y_new = XLAT[0, :, 1]
-
-    if uu == True:
-        u_shape = (U.shape[0], U.shape[1], U.shape[2], U.shape[3]-1)
-
-    else:
-        u_shape = (U.shape[0], U.shape[1] ,U.shape[2] - 1, U.shape[3])
-
-
-    U_out = np.zeros(u_shape, dtype='float32')
-    #U_out = np.zeros(u_shape, dtype='float32')
-
-    for t in range(0, U.shape[0]):
-        for h in range(0, U.shape[1]):
-
-            f = interpolate.interp2d(x_old, y_old, U[t, h, :, :], kind = Kind)
-            U_out[t, h, :, :] = f(x_new, y_new)
-
-    return U_out
-
 def compute_height(PH, PHB):
 
     '''
     compute_height(PH, PHB)
 
-        PH y PHB deben ser prporcionados como una matriz de 4 dimensiones es decir no hay especificar su variable temporal.
+        PH y PHB deben ser prporcionados como una matriz con todas sus dimensiones.
 
     '''
 
     g = 9.8
-    z_shape = (PH.shape[0], PH.shape[1]-1, PH.shape[2], PH.shape[3])
+    z_shape = (PH.shape[0], PH.shape[1], PH.shape[2]-1, PH.shape[3], PH.shape[4])
     Z = np.zeros(z_shape, dtype='float32')
 
-    for t in range(0, PH.shape[0]):
-        for h in range(0, PH.shape[1]-1):
+    for d in range(0, PH.shape[4]):
+        for t in range(0, PH.shape[3]):
+            for h in range(0, PH.shape[2]-1):
 
-            Z[t, h, :, :] = ((PH[t, h, :, :] + PHB[t, h, :, :]) + (PH[t, h+1, :, :] + PHB[t, h+1, :, :]))/(g*2)
+                Z[:, :, h, t, d] = ((PH[:, : , h, t, d] + PHB[:, :, h, t, d]) + (PH[:, : , h+1, t, d] + PHB[:, :, h+1, t, d]))/(g*2)
 
     return Z
 
@@ -292,21 +255,63 @@ def points_in_region(region, x_long, x_lat):
     region.nx = nx
     region.ny = ny
 
+def compute_vel_promedio(u):
+
+    '''
+    compute_vel_promedio(U)
+
+        U deben ser proporcionado como una matriz contodas sus dimensiones.
+
+    '''
+    z_shape = (1, u.shape[2], u.shape[3], u.shape[4])
+    u_promedio = np.zeros(z_shape, dtype='float32')
+    u_std = np.zeros(z_shape, dtype='float32')
+
+    for d in range(0, u.shape[4]):
+        for t in range(0, u.shape[3]):
+            for h in range(0, u.shape[2]):
+
+                u_promedio[0, h, t, d] = np.average(u[:,:, h, t, d])
+                u_std[0, h, t, d] = np.std(u[:,:, h, t, d])
+
+    return u_promedio, u_std
+
+def compute_pblh_promedio(pblh):
+
+    '''
+        procjnafa
+    '''
+    z_shape = (1, pblh.shape[2], pblh.shape[3])
+    pblh_promedio = np.zeros(z_shape, dtype='float32')
+    pblh_std = np.zeros(z_shape, dtype='float32')
+
+    for d in range(0, pblh.shape[3]):
+        for t in range(0, pblh.shape[2]):
+
+            pblh_promedio[0, t, d] = np.average(pblh[:,:, t, d])
+            pblh_std[0, t, d] = np.std(pblh[:,:, t, d])
+
+    return pblh_promedio, pblh_std
+
+
 def import_var_mat(file, station):
     """
     import_var_mat(file, station):
         Imports the variables in a .mat file previously read using scipy.io.loadmat() function.
         The argument station is the name or acronym of the station, it must be a string.
-        It returns a directory containing all the arrays.
+        It returns a directory containing these variables: 'PBLH', 'XLONG', 'U_std', 'V_std', 'HGT', 'V', 'Z', 'V_avg', 'XLAT', 'T', 'T2', 'PHB', 'U', 'U_avg', 'PH'.
     """
-
 
     variables = ["PBLH","T","T2","U","V","PH","PHB","HGT","XLAT","XLONG"]#,"XLAT_U","XLONG_U","XLAT_V","XLONG_V"]
     d = {}
     for i in variables:
         d[i] = file["s"][station][0][0][0][0][i]
+    d['Z'] = compute_height(d['PH'], d['PHB'])
+    #d['U_avg'], d['U_std'] = compute_vel_promedio(d['U'])
+    #d['V_avg'], d['V_std'] = compute_vel_promedio(d['V'])
+    d['PBLH_avg'], d['PBLH_std'] = compute_pblh_promedio(d['PBLH'])
 
-    return
+    return d
 
 def read_celiomentro_month(file_path):
     """
