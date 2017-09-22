@@ -313,7 +313,8 @@ def import_var_mat(file, station):
 
     return d
 
-def read_celiomentro_month(file_path):
+
+def read_ceilometro_month(file_path):
     """
     read_celiomentro_month(file_path)
          OUT: datetime format array, pblh_raw, pblh_filtered
@@ -328,9 +329,117 @@ def read_celiomentro_month(file_path):
         date, raw, filtered = line.split()
         date = datetime.datetime.strptime(date, '%Y-%m-%d-%H:%M:%S')
         datetimes.append(date)
-        raws.append(raw)
-        filtereds.append(filtered)
+        raws.append(float(raw))
+        filtereds.append(float(filtered))
 
     filtereds = np.array(filtereds)
     raws = np.array(raws)
+
     return datetimes, raws, filtereds
+
+
+def search_hours(hh, DT):
+    indexes = []
+    for i in range(0, len(DT)):
+        if DT[i].hour == hh and DT[i].minute == 0:
+            indexes.append(i)
+    return indexes
+
+def promedios_mesuales_hora(hh, DT, RAW):
+
+    index_array = search_hours(hh, DT)
+
+    mensuales = []
+    mensuales_std = []
+    mensuales_hora = []
+    mensuales_hora_std = []
+
+    for i in index_array:
+        mensuales.append(RAW[i])
+        intervalo_hora = []
+
+        for j in range(-3, 4):
+            intervalo_hora.append(RAW[i + j])
+
+        mean_hora = np.mean(intervalo_hora)
+        std_hora = np.std(intervalo_hora)
+        mensuales_hora.append(mean_hora)
+        mensuales_hora_std.append(std_hora)
+
+
+    mean_mesuales = np.mean(mensuales)
+    std_mensuales = np.std(mensuales)
+    mean_mensuales_hora = np.mean(mensuales_hora)
+    std_mensuales_hora = np.mean(mensuales_hora_std)
+
+    return mean_mesuales, std_mensuales, mean_mensuales_hora, std_mensuales_hora
+
+def promedios_mensuales(DT, RAW):
+    mes = []
+    mes_std = []
+    mes_inteval = []
+    mes_inteval_std = []
+    for h in range(6, 24):
+        mean_mm, std_mm, mean_mm_intv, std_mm_intv = promedios_mesuales_hora(h, DT, RAW)
+        mes.append(mean_mm)
+        mes_std.append(std_mm)
+        mes_inteval.append(mean_mm_intv)
+        mes_inteval_std.append(std_mm_intv)
+
+    mes = np.array(mes)
+    mes_std = np.array(mes_std)
+    mes_inteval = np.array(mes_inteval)
+    mes_inteval_std = np.array(mes_inteval_std)
+
+    return  [mes, mes_std, mes_inteval, mes_inteval_std]
+
+def promedios_mensuales_wrf(mat_file):
+    month = []
+    month_std = []
+    month_spc = []
+    month_spc_std = []
+
+    for h in range(6, 24):
+
+        h_mean = np.mean(mat_file['PBLH'][1,1, h, :])
+        h_std = np.std(mat_file['PBLH'][1,1, h, :])
+        month.append(h_mean)
+        month_std.append(h_std)
+
+        mean_spc_days = []
+        std_spc_days = []
+
+        for day in range(0,len(mat_file['PBLH'][0,0,0,:])):
+
+            h_spc_mean = np.mean(mat_file['PBLH'][:,:, h, day])
+            h_spc_std = np.std(mat_file['PBLH'][:,:, h, day])
+            mean_spc_days.append(h_spc_mean)
+            std_spc_days.append(h_spc_std)
+
+        month_spc.append(np.mean(mean_spc_days))
+        month_spc_std.append(np.std(std_spc_days))
+
+    month = np.array(month)
+    month_std = np.array(month_std)
+    month_spc = np.array(month_spc)
+    month_spc_std = np.array(month_spc_std)
+
+    return  [month, month_std, month_spc , month_spc_std]
+
+def exportfile(name, ceilo, wrf_24, wrf_48):
+    Arr = np.zeros((12, 18))
+    Arr[0,:] = ceilo[0]
+    Arr[1,:] = ceilo[1]
+    Arr[2,:] = ceilo[2]
+    Arr[3,:] = ceilo[3]
+    Arr[4,:] = wrf_24[0]
+    Arr[5,:] = wrf_24[1]
+    Arr[6,:] = wrf_24[2]
+    Arr[7,:] = wrf_24[3]
+    Arr[8,:] = wrf_48[0]
+    Arr[9,:] = wrf_48[1]
+    Arr[10,:] = wrf_48[2]
+    Arr[11,:] = wrf_48[3]
+
+    np.savetxt(name, Arr.T, fmt="%10.3f")
+    return Arr.T
