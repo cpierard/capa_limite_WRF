@@ -443,3 +443,6 @@ def exportfile(name, ceilo, wrf_24, wrf_48):
 
     np.savetxt(name, Arr.T, fmt="%10.3f")
     return Arr.T
+
+def ajuste_lineal(x, a, b):
+    return a*x + b
