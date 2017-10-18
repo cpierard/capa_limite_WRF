@@ -313,6 +313,24 @@ def import_var_mat(file, station):
 
     return d
 
+def import_var_mat_VC(file):
+    """
+    import_var_mat(file):
+        Imports the variables in a VC .mat file previously read using scipy.io.loadmat() function.
+        It returns a directory containing these variables: 'PBLH', 'XLONG','XLAT', 'HGT', 'V', 'U', 'Z' , 'PHB', 'PH'.
+    """
+
+    variables = ["PBLH","U","V","PH","PHB","HGT","XLAT","XLONG"]#,"XLAT_U","XLONG_U","XLAT_V","XLONG_V"]
+    d = {}
+    for i in variables:
+        d[i] = file["s"][0][0][0][0][0][i]
+    d['Z'] = compute_height(d['PH'], d['PHB'])
+    #d['U_avg'], d['U_std'] = compute_vel_promedio(d['U'])
+    #d['V_avg'], d['V_std'] = compute_vel_promedio(d['V'])
+    #d['PBLH_avg'], d['PBLH_std'] = compute_pblh_promedio(d['PBLH'])
+
+    return d
+
 
 def read_ceilometro_month(file_path):
     """
@@ -445,4 +463,4 @@ def exportfile(name, ceilo, wrf_24, wrf_48):
     return Arr.T
 
 def ajuste_lineal(x, a, b):
-    return a*x + b
+    return a + b*x
