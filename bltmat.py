@@ -1,6 +1,7 @@
 import scipy.interpolate as interpolate
 import numpy as np
 import datetime
+import pandas as pd
 
 def compute_height(PH, PHB):
 
@@ -248,7 +249,7 @@ def points_in_region(region, x_long, x_lat):
     ny = []
     for i in range(0,29):
         for j in range(0,29):
-            if blt.in_or_out(region, x_long[i,j], x_lat[i,j]) == True:
+            if in_or_out(region, x_long[i,j], x_lat[i,j]) == True:  #blt.
                 nx.append(i)
                 ny.append(j)
     #return nx, ny
@@ -464,3 +465,27 @@ def exportfile(name, ceilo, wrf_24, wrf_48):
 
 def ajuste_lineal(x, a, b):
     return a + b*x
+
+def wrf2dataframe(month_24, month_48, month_t_range):
+    """
+        wrf2dataframe(month_24, month_48, month_t_range):
+        - month_24 : salida del wrf 24 para una estación.
+        - month_48 : salida del wrf 48 para una estación.
+        - month_t_range : rango temoral de los datos month_24 y month_48.
+    """
+    month_pblh_24 = []
+    month_pblh_avg_24 = []
+    month_pblh_48 = []
+    month_pblh_avg_48 = []
+    for i in range(0,len(month_24['PBLH'][1,1,0,:])):
+        for j in range(0,24):
+            month_pblh_24.append(month_24['PBLH'][1,1,j,i])
+            month_pblh_avg_24.append(month_24['PBLH_avg'][0,j,i])
+            month_pblh_48.append(month_48['PBLH'][1,1,j,i])
+            month_pblh_avg_48.append(month_48['PBLH_avg'][0,j,i])
+
+    month_wrf_df = pd.DataFrame({'PBLH_24' : pd.Series(month_pblh_24, index=month_t_range),
+                               'PBLH_avg_24' : pd.Series(month_pblh_avg_24, index=month_t_range),
+                               'PBLH_48' : pd.Series(month_pblh_48, index=month_t_range),
+                               'PBLH_avg_48' : pd.Series(month_pblh_avg_48, index=month_t_range)})
+    return month_wrf_df
